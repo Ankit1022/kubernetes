@@ -1,0 +1,30 @@
+# Use ConfigMap as a Volume
+# vim sample.conf
+#
+#kubectl create configmap mymap --from-file=sample.conf
+#kubectl get configmap
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myvolconfig
+spec:
+  containers:
+  - name: c1
+    image: centos
+    command: ["/bin/bash", "-c", "while true; do echo welcome to tech; sleep 5 ; done"]
+    volumeMounts:
+      - name: testconfigmap
+        mountPath: "/tmp/config"
+  volumes:
+  - name: testconfigmap
+    configMap:
+      name: mymap
+      items:
+      - key: sample.conf
+        path: sample.conf
+
+#kubectl create -f configmap.yaml
+#kubectl exec myvolconfig -it -c c1 -- bash
+# Now check into /tmp dir config dir will we there.
+
+

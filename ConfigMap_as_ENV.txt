@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myvolconfig
+spec:
+  containers:
+  - name: c1
+    image: centos
+    command: ["/bin/bash", "-c", "while true; do echo welcome to tech; sleep 5 ; done"]
+    env:
+    - name: myenv
+      valueFrom:
+        configMapKeyRef:
+          name: mymap
+          key: sample.conf

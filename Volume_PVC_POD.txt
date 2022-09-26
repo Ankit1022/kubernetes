@@ -1,0 +1,70 @@
+#Configure a Pod to Use a PersistentVolume for Storage.
+#
+#Create an index.html file on your Node: 
+#mkdir /mnt/data
+#echo "My web Page" >> /mnt/data/index.html
+#
+#Now Create a PersistentVolume:
+#
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: task-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data"
+
+# To get information about PV: kubectl get pv task-pv-volume
+#
+#Now Create a PersistentVolumeClaim:
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: task-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 3Gi
+
+#
+# To get information about pvc: kubectl get pvc task-pv-claim
+#
+#Now, Create a Pod
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: task-pv-pod
+spec:
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: task-pv-claim
+  containers:
+    - name: task-pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: task-pv-storage
+
+# kubectl get pod task-pv-pod
+#
+# kubectl exec -it task-pv-pod -- /bin/bash
+#
+#kubectl delete pod task-pv-pod
+#kubectl delete pvc task-pv-claim
+#kubectl delete pv task-pv-volume

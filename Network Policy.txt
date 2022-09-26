@@ -1,0 +1,99 @@
+#Network policies are Kubernetes resources that control the traffic between pods and/or network endpoints. 
+#They uses labels to select pods and specify the traffic that is directed toward those pods using rules. 
+#
+#By default, if no policies exist in a namespace, then all ingress and egress traffic is allowed to and from pods in that namespace. 
+#
+########
+podSelector--> selects a group of pods for which the policy applies
+policyTypes--> defines the type of traffic to be restricted (inbound, outbound, both)
+ingress-->  includes inbound traffic whitelist rules
+egress--> includes outbound traffic whitelist rules
+
+########
+#Create NameSpace as (prod,test,dev) with labels.
+# kubectl create namespace prod
+#kubectl label namespaces prod area=prod
+# kubectl create namespace test
+#kubectl label namespaces test area=test
+# kubectl create namespace dev
+#kubectl label namespaces dev area=dev
+# kubectl get ns --show-labels
+
+########
+#Create pods inside the namespaces
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prod-web
+  namespace: prod
+  labels:
+    app: prodone
+spec:
+  containers:
+    - name: container1
+      image: nginx
+      ports:
+        - containerPort: 80
+
+Note: As above have to create for other NS.
+
+# kubectl create -f myfirstpod.yml -n prod
+# kubectl get pod -n prod
+# kubectl create -f myfirstpod.yml -n test
+# kubectl create -f myfirstpod.yml -n dev
+
+####################################
+Test the Default policy:
+
+#kubectl get pod -n prod -o wide
+#kubectl get pod -n test -o wide
+#kubectl get pod -n dev -o wide
+
+# login into prodone container:
+# kubectl -n prod exec -it prod-web -- bash
+# Try to access the web server of any NS.
+# curl http://<ip-address>
+#
+###################################
+
+# Now configure the Network Policy for NS based.
+#
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy     # policy name
+  namespace: prod               # on which NS this policy will be applied
+spec:
+  podSelector: {}                # policy will be applied on all the pods in prod NS.
+  #  matchLabels:
+  #    role: db
+  policyTypes:                  #This policy allows inbound traffic for which have a label "area=test".
+    - Ingress
+      #    - Egress
+  ingress:
+    - from:
+      #        - ipBlock:
+      #            cidr: 172.17.0.0/16
+      #            except:
+      #              - 172.17.1.0/24
+        - namespaceSelector:
+            matchLabels:
+              area: test
+              # - podSelector:
+              #            matchLabels:
+              #              role: frontend
+      ports:
+        - protocol: TCP
+          port: 80
+
+
+
+#k get -n prod networkpolicies
+#k describe -n prod networkpolicies
+### After applying the policy can test the connectivity.
+#kubectl delete networkpolicies -n prod test-network-policy
+#
+#
+
+

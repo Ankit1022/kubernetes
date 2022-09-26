@@ -1,0 +1,62 @@
+# Configuring Lens, prometheus and Grafana.
+
+#Prerequisite:
+1. Kubernetes cluster must be up and running on premise or on Cloud platform (Azure, AWS, GCP).  # I will be using Azure Kubernetes Cluster
+2. One Linux Box(Ubuntu Desktop) with GUI.  # I will be using Ubuntu-22.2 in Oracle Box.
+3. Internet Connectivity.
+
+# On Ubuntu Machine: kubectl, vim, bash-autocompletion, curl, wget, and lens must be installed.
+#
+
+#1. Let's Install kubectl on ubuntu desktop: #reference link:# https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+
+->Download the latest release with the command:
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+
+->Download the kubectl checksum file:
+#curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+
+->Validate the kubectl binary against the checksum file:
+echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+
+->Install kubectl
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+chmod +x kubectl
+mkdir -p ~/.local/bin
+mv ./kubectl ~/.local/bin/kubectl
+kubectl version --client
+
+#2. Configure config file to access your kubernetes cluster:
+->You can copy config file using scp or can be shared over mail.
+->You have to copy this config file into .kube location with permission 600.
+
+#3. Install helm.
+->curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+->chmod 700 get_helm.sh
+->./get_helm.sh
+
+#4. Install lens.
+-> download the lens: https://k8slens.dev/
+-> dpkg -i <packagename.deb>
+
+#########################################################################################################
+
+# Now Install prometheus and Grafana in kubernetes cluster.
+#
+#Add the following helm repositories by the commands below
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add stable https://charts.helm.sh/stable
+
+# Update Helm repositories
+helm repo update
+
+# Install Prometheus Kubernetes
+helm install prometheus prometheus-community/kube-prometheus-stack
+Kubernetes Prometheus Port Forward
+kubectl port-forward deployment/prometheus-grafana 3000
+
+# Log in to Grafana
+
+Open browser and type localhost:3000. Since you are logging in for the first time, you will have to use a default username and password. 
+username: admin
+password: prom-operator

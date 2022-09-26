@@ -1,0 +1,28 @@
+#kubectl taint nodes cka-worker1 app=stateless:NoSchedule   # Now worker1 has tainted.
+#
+#kubectl describe nodes cka-worker1 | grep -i taints
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-server
+  labels:
+    app: web
+spec:
+  containers:
+    - name: web1
+      image: nginx
+      ports:
+        - containerPort: 80
+  tolerations:
+  - key: "app"
+    operator: "Equal"
+    value: "stateless"
+    effect: "NoSchedule"
+
+# Check this pod is deploying on cka-worker1 node.
+#
+# Untained the nodes
+#
+#kubectl taint node cka-worker1 app=stateless:NoSchedule-
+#

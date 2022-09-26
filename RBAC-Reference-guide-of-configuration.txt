@@ -1,0 +1,89 @@
+# Reference guide of RBAC i k8s:
+
+Step-1 Generate key (workstation)
+# openssl genrsa -out ankit.key 2028
+
+Step-2 Generate csr file (workstation)
+#openssl req -new -key ankit.key -out ankit.csr -subj "/CN=ankit"
+
+Step-3 Send these key files to master node: (workstation)
+#scp ankit.* ankit@10.0.0.4:/home/ankit
+
+Step-4 Generate certificate file: (Master)
+#openssl x509 -req -in john.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out ankit.crt -days 365
+
+Step-4 Send this certificate file to the remote host (Master)
+#scp ankit.crt ankit@10.0.0.4:/home/ankit
+
+Step-5 Create user on Master Node (Master)
+#kubectl config set-credentials john --client-certificate=ankit.crt --client-key=ankit.key
+
+Step-6 Set context for user:
+#kubectl create ns hello
+#kubectl config set-context ankit(anyname) --cluster=kubernetes --namespace=hello --user=john
+
+Step-7 Create Role or Cluster Role for user as needed(master). (In this example i will create role)
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: hello
+  name: pod-creater
+rules:
+- apiGroups: ["apps/v1",""] # "" indicates the core API group
+  resources: ["pods", "deployments"]
+  verbs: ["get", "watch", "list", "create"]
+
+# kubectl api-resources
+#
+Step-8 Bind this role to user: (master)
+
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "ankit" to create pods in the "hello" namespace.
+# You need to already have a Role named "pod-creater" in that namespace.
+kind: RoleBinding
+metadata:
+  name: create-pods
+  namespace: hello
+subjects:
+# You can specify more than one "subject"
+- kind: User
+  name: ankit # "name" is case sensitive
+  namespace: hello
+  #  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: pod-creater # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+
+#
+#
+#cp /etc/kubernetes/admin.conf . (master)
+#mv admin.conf config
+#vim config
+apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUMvakNDQWVhZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJeU1EY3lNekEyTVRjMU1sb1hEVE15TURjeU1EQTJNVGMxTWxvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTHc3CnI0c0dPbEVrNlF6aHIzNURLZW1Wb3d0WEw5VjdWV3pLSVgyNGNMZ1lMR1pkNnRSSCtENW9BVkhIVWNzbjNiMTEKOHJORGNsVEFXREtzdWVBcW1UMWxyc3ZUMlhqVXhVckJHWTVQMW1zTm5rNEY0RUdITDhKTWRTeDA3Umx3QlBOaAphNnFVSnRVSExWaFYrVFpOemU2b2QwMHNFQ3FROGxLc1ZtQWluTXV5bVZoOFBKODRZK2lZL25KenBqTmpzQUd6CjFEZFFiV1ZvY1FBcm43MDFpd3lHRnJiNFVISTVGV0pJS00zazJ2WnpiV0x4N3k1aWdOSkNwNlZuU1RzMFl6YzIKYWhRYWdFMUFqR0JwbDBlTngyQ09lZ1JkWjJYSDR2b0lXNnNoUVFYNEhEV2JTRTBYSWphUUw4NEFzanNYZVJHdgpmaUxYa1BSS21aRHZlUGlQSFNjQ0F3RUFBYU5aTUZjd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZJSmx4Tmh1a0xSU2tOdmxmdHpRbDV0dVV4UzZNQlVHQTFVZEVRUU8KTUF5Q0NtdDFZbVZ5Ym1WMFpYTXdEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBRHAwVTRYQXBYR2pqMGlWY3g3YwpEelFOL0hrYVVlbkwrcmMyWDVsZERPbVJIYWxOYkhKcFAxUGkrNDBVdjRoTGh0RGxLajR5ajE0T21lT0VoZEg0CjBrUzBLU1NMOEliOXFvWDZ5aFg2Y1kxWWNNMFBpMXFjVVFHOWQ1QU9MSEgrdlFyNHlvWnVIZzBVSnIrbFZzaEQKb1B0bDJ4b1ZtYkFGdFNHWjIwdU1lMXFyTXJRKzZua2pVU3pQMGYvd0dGOEo2RVBPZE0wanpkbjRFOUNML09aSwpkV1M5WC9BKzh0MlNyamx3TWJsK2hlMmkwZGszbkQrMXJxUjNzNUZhVlRVT0t3V0xJQktyeko1U0NtYURIb0xHClhjR3lCV1FNNmtibGlBTk5GeFNUWkhFTVZrYkMyZWxqbEpUNGJCdUVJSjVaRVRoSHlMd0FQYVBKYVdodHFXaDgKVHlnPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
+    server: https://10.0.0.4:6443
+  name: kubernetes
+contexts:
+- context:
+    cluster: kubernetes
+    user: ankit
+  name: ankit
+current-context: ankit
+kind: Config
+preferences: {}
+users:
+- name: ankit
+  user:
+    client-certificate: /home/ankit/ankit.crt
+    client-key: /home/ankit/ankit.key
+
+#
+#
+# Step-9 Send this config file to worstation and save into ".kube/config" (master)
+# Step-10 Try to create pod in hello name space. (workstation)
+

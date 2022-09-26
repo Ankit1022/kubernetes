@@ -1,0 +1,26 @@
+#A PersistentVolume (PV) is a piece of storage in the cluster that has been provisioned by an administrator or 
+#dynamically provisioned using Storage Classes.
+#
+#A PersistentVolumeClaim (PVC) is a request for storage by a user. It is similar to a Pod.
+#There are two ways PVs may be provisioned: statically or dynamically.
+#Static:A cluster administrator creates a number of PVs. They carry the details of the real storage, which is available for use by cluster users.
+#Dynamic: This provisioning is based on StorageClasses: the PVC must request a storage class and the administrator must have created 
+#and configured that class for dynamic provisioning to occur. 
+#
+#The reclaim policy for a PersistentVolume tells the cluster what to do with the volume after it has been released of its claim. 
+#Currently, volumes can either be Retained, Recycled, or Deleted.
+#
+#Access Modes:
+#ReadWriteOnce
+#ReadOnlyMany
+#ReadWriteMany
+#ReadWriteOncePod
+#
+#A Kubernetes administrator can specify additional mount options for when a Persistent Volume is mounted on a node.
+#awsElasticBlockStore
+#azureDisk
+#azureFile
+#gcePersistentDisk
+#nfs,  etc.
+
+

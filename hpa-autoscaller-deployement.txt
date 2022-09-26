@@ -1,0 +1,15 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: myautoscaler
+spec:
+  maxReplicas: 10
+  minReplicas: 4
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mydeployment
+  targetCPUUtilizationPercentage: 10
+
+# now put some load on deployment
+# while true; do curl http://service-ip-address ; done

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web
+spec:
+  containers:
+  - image: centos
+    name: test-container
+    command: ["/bin/bash", "-c", "sleep 15000"]
+    volumeMounts:
+    - mountPath: /tmp/hostpath/
+      name: testvolume
+  volumes:
+  - name: testvolume
+    hostPath:
+      path: /mnt/

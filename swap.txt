@@ -1,0 +1,3 @@
+dd if=/dev/zero of=/appswap bs=1M count=1024
+chmod 600 /appswap
+mkswap /appswap

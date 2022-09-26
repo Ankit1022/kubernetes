@@ -1,0 +1,45 @@
+ConfigMaps : 
+1. A ConfigMap is an API object used to store non-confidential data in key-value pairs.
+
+2. Pods can consume ConfigMaps as environment variables, command-line arguments, or as configuration files in a volume.
+
+3. A ConfigMap allows you to decouple environment-specific configuration from your container images,
+so that your applications are easily portable.
+
+4. ConfigMap does not provide secrecy or encryption. If the data you want to store are confidential, use a Secret rather than a ConfigMap.
+
+5. ConfigMap is Name Space Specific.
+
+6. A ConfigMap is not designed to hold large chunks of data. The data stored in a ConfigMap cannot exceed 1 MiB. 
+
+ConfigMaps can be mounted as data volumes:
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: mypod
+    image: redis
+    volumeMounts:
+    - name: foo
+      mountPath: "/etc/foo"
+      readOnly: true
+  volumes:
+  - name: foo
+    configMap:
+      name: myconfigmap
+
+7. The Kubernetes feature Immutable Secrets and ConfigMaps provides an option to set individual Secrets and ConfigMaps as immutable.
+# protects you from accidental (or unwanted) updates that could cause applications outages
+# improves performance of your cluster by significantly reducing load on kube-apiserver, by closing watches for ConfigMaps marked as immutable.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  ...
+data:
+  ...
+immutable: true
+

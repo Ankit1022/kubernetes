@@ -1,0 +1,57 @@
+# pod-with-pod-affinity.yml
+#
+# 
+# First create a pod with label "app=web" using.
+# kubectl create -f pod-with-pod-affinity.yml
+#
+# Check the node where its running.
+#
+# Now we want this pod always to be deployed on 
+# same node, where "web" pod is running
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app1
+  namespace: learning
+  labels:
+   app: apache
+spec:
+  containers:
+    - name: web1
+      image: lovelearnlinux/webserver:v1
+      resources:
+        limits:
+          memory: "500Mi"
+        requests:
+          memory: "300Mi"
+  affinity:
+    #    podAntiAffinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - web
+        topologyKey: "kubernetes.io/hostname"
+
+
+#
+# create namespace learning -
+# kubectl create namespace learning
+#
+# run the pod
+# kubectl create -f pod-with-anti-pod-affinity.yml
+#
+# check the pod
+# kubectl get pods --namespace=learning --output=wide
+#
+# get details about pod
+# kubectl describe pod/nnappone --namespace=learning
+#
+# get details of all the pods
+# kubectl get pods -o wide --namespace=learning
+#
+# check that both the pods will be running on same nodes.

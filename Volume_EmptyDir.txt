@@ -1,0 +1,27 @@
+#Kubernetes supports many types of volumes. A Pod can use any number of volume types: 
+#Ephemeral volume types have a lifetime of a pod, but persistent volumes exist beyond the lifetime of a pod.
+#An emptyDir volume is first created when a Pod is assigned to a node, and exists as long as that Pod is running on that node.
+#All containers in the Pod can read and write the same files in the emptyDir volume, 
+#though that volume can be mounted at the same or different paths in each container. 
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vol-test
+spec:
+  containers:
+  - name: c1
+    image: centos
+    command: ["/bin/bash", "-c", "sleep 150000"]
+    volumeMounts:
+      - name: vol1
+        mountPath: "/tmp/data1"
+  - name: c2
+    image: centos
+    command: ["/bin/bash", "-c", "sleep 150000"]
+    volumeMounts:
+      - name: vol1
+        mountPath: "/tmp/data2"
+  volumes:
+  - name: vol1
+    emptyDir: {}
